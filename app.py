@@ -116,8 +116,23 @@ def apply_sharpen(image: np.ndarray, amount: int) -> np.ndarray:
 
 @st.cache_resource
 def load_face_cascade():
-    cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    return cv2.CascadeClassifier(cascade_path)
+    """
+    Returns a loaded Haar cascade classifier, or None if it can't be loaded
+    (e.g. a broken/partial OpenCV install missing cv2.data or
+    cv2.CascadeClassifier). Callers must handle a None return by falling
+    back to the center-ellipse mask.
+    """
+    try:
+        cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        classifier = cv2.CascadeClassifier(cascade_path)
+        if classifier.empty():
+            return None
+        return classifier
+    except AttributeError:
+        # cv2 installed without the 'data' submodule or CascadeClassifier
+        # (commonly caused by having both opencv-python and
+        # opencv-python-headless installed at once).
+        return None
 
 
 def portrait_blur(image: np.ndarray, blur_strength: int) -> np.ndarray:
@@ -136,7 +151,9 @@ def portrait_blur(image: np.ndarray, blur_strength: int) -> np.ndarray:
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     face_cascade = load_face_cascade()
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+    faces = ()
+    if face_cascade is not None:
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
 
     if len(faces) > 0:
         for (x, y, fw, fh) in faces:
@@ -233,6 +250,11 @@ sharpen_amount = st.sidebar.slider("Sharpen amount", 0, 100, 0)
 st.sidebar.header("5. Portrait Mode")
 portrait_on = st.sidebar.checkbox("Enable portrait-style background blur")
 portrait_strength = st.sidebar.slider("Background blur strength", 5, 40, 15, disabled=not portrait_on)
+if portrait_on and load_face_cascade() is None:
+    st.sidebar.caption(
+        "⚠️ Face detection unavailable in this environment — using a "
+        "center-focused blur instead."
+    )
 
 st.sidebar.header("6. Extra Effects")
 extra_effect = st.sidebar.selectbox(
