@@ -17,7 +17,22 @@ from PIL import Image
 # --------------------------------------------------------------------------
 # Page configuration
 # --------------------------------------------------------------------------
-st.set_page_config(page_title="Photo Editor - OpenCV & Streamlit", layout="wide")
+st.set_page_config(page_title="Photo Editor - OpenCV & Streamlit", layout="centered")
+
+# Optional: fine-tune the max width of the centered layout.
+# Increase/decrease the max-width value below to make the app wider/narrower.
+st.markdown(
+    """
+    <style>
+    .block-container {
+        max-width: 900px;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.title("📸 Photo Editor using OpenCV and Streamlit")
 st.write(
