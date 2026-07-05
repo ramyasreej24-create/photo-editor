@@ -250,21 +250,23 @@ original_pil = Image.open(uploaded_file)
 original_cv = pil_to_cv(original_pil)
 
 st.sidebar.header("2. Resize")
-resize_pct = st.sidebar.slider("Resize (% of original)", 10, 200, 100, step=5)
+resize_pct = st.sidebar.slider("Resize (% of original)", 10, 200, 100, step=5, key="resize_pct")
 
 st.sidebar.header("3. Brightness & Contrast")
-brightness = st.sidebar.slider("Brightness", -100, 100, 0)
-contrast = st.sidebar.slider("Contrast", -100, 100, 0)
+brightness = st.sidebar.slider("Brightness", -100, 100, 0, key="brightness")
+contrast = st.sidebar.slider("Contrast", -100, 100, 0, key="contrast")
 
 st.sidebar.header("4. Basic Effects")
-grayscale_on = st.sidebar.checkbox("Convert to Grayscale")
-blur_strength = st.sidebar.slider("Blur strength", 0, 25, 0)
-warm_intensity = st.sidebar.slider("Warm filter intensity", 0, 100, 0)
-sharpen_amount = st.sidebar.slider("Sharpen amount", 0, 100, 0)
+grayscale_on = st.sidebar.checkbox("Convert to Grayscale", key="grayscale_on")
+blur_strength = st.sidebar.slider("Blur strength", 0, 25, 0, key="blur_strength")
+warm_intensity = st.sidebar.slider("Warm filter intensity", 0, 100, 0, key="warm_intensity")
+sharpen_amount = st.sidebar.slider("Sharpen amount", 0, 100, 0, key="sharpen_amount")
 
 st.sidebar.header("5. Portrait Mode")
-portrait_on = st.sidebar.checkbox("Enable portrait-style background blur")
-portrait_strength = st.sidebar.slider("Background blur strength", 5, 40, 15, disabled=not portrait_on)
+portrait_on = st.sidebar.checkbox("Enable portrait-style background blur", key="portrait_on")
+portrait_strength = st.sidebar.slider(
+    "Background blur strength", 5, 40, 15, disabled=not portrait_on, key="portrait_strength"
+)
 if portrait_on and load_face_cascade() is None:
     st.sidebar.caption(
         "⚠️ Face detection unavailable in this environment — using a "
@@ -275,13 +277,14 @@ st.sidebar.header("6. Extra Effects")
 extra_effect = st.sidebar.selectbox(
     "Choose an extra effect (optional)",
     ["None", "Edge Detection", "Sketch", "Cartoon"],
+    key="extra_effect",
 )
 edge_t1, edge_t2 = 100, 200
 if extra_effect == "Edge Detection":
-    edge_t1 = st.sidebar.slider("Canny threshold 1", 0, 300, 100)
-    edge_t2 = st.sidebar.slider("Canny threshold 2", 0, 300, 200)
+    edge_t1 = st.sidebar.slider("Canny threshold 1", 0, 300, 100, key="edge_t1")
+    edge_t2 = st.sidebar.slider("Canny threshold 2", 0, 300, 200, key="edge_t2")
 
-rotation_angle = st.sidebar.slider("Rotate (degrees)", -180, 180, 0, step=5)
+rotation_angle = st.sidebar.slider("Rotate (degrees)", -180, 180, 0, step=5, key="rotation_angle")
 
 
 # --------------------------------------------------------------------------
@@ -349,5 +352,25 @@ st.download_button(
     mime="image/png",
 )
 
+RESETTABLE_KEYS = [
+    "resize_pct",
+    "brightness",
+    "contrast",
+    "grayscale_on",
+    "blur_strength",
+    "warm_intensity",
+    "sharpen_amount",
+    "portrait_on",
+    "portrait_strength",
+    "extra_effect",
+    "edge_t1",
+    "edge_t2",
+    "rotation_angle",
+]
+
 if st.sidebar.button("Reset all settings"):
+    for key in RESETTABLE_KEYS:
+        if key in st.session_state:
+            del st.session_state[key]
     st.rerun()
+
